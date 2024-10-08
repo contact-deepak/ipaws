@@ -37,3 +37,18 @@ jobs:
         
         # Add a rule to allow inbound traffic from the runner's IP
         aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"
+
+    - name: Wait for 30 seconds
+      run: |
+        echo "Waiting for 30 seconds..."
+        sleep 30
+        
+    - name: Cleanup - Remove IP from Security Group
+      if: always()  # Ensure this step runs even if the previous steps fail
+      run: |
+        SECURITY_GROUP_ID="sg-0f40e5dc67b3d518f"
+        RUNNER_IP="${{ env.RUNNER_IP }}"
+        echo "Removing access for IP $RUNNER_IP from the security group"
+        
+        # Remove the rule that allowed inbound traffic from the runner's IP
+        aws ec2 revoke-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"     
