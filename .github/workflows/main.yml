@@ -1,12 +1,39 @@
-name: Get IP Address
+name: Update EC2 Security Group
 
-on: 
+on:
   push:
+    branches:
+      - main
 
 jobs:
-  get-ip:
+  update-security-group:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Get IP with dig
-      run: dig +short myip.opendns.com @resolver1.opendns.com
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Get Public IP
+      id: get-ip
+      run: |
+        echo "RUNNER_IP=$(curl -s ifconfig.me)" >> $GITHUB_ENV
+
+    - name: Configure AWS CLI
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-west-2  # Change this to your desired region
+      run: |
+        echo "Configuring AWS CLI"
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set default.region $AWS_REGION
+
+    - name: Update Security Group
+      run: |
+        SECURITY_GROUP_ID="sg-0123456789abcdef0"  # Replace with your security group ID
+        RUNNER_IP="${{ env.RUNNER_IP }}"
+        echo "Updating security group to allow access from $RUNNER_IP"
+        
+        # Add a rule to allow inbound traffic from the runner's IP
+        aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"
