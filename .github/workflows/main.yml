@@ -1,0 +1,12 @@
+name: Get IP Address
+
+on: 
+  push:
+
+jobs:
+  get-ip:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get IP with dig
+      run: dig +short myip.opendns.com @resolver1.opendns.com
