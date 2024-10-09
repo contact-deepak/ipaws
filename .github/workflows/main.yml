@@ -38,6 +38,15 @@ jobs:
         # Add a rule to allow inbound traffic from the runner's IP
         aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"
 
+    - name: Update Security Group
+      run: |
+        SECURITY_GROUP_ID="sg-0f40e5dc67b3d518f"  # Replace with your security group ID
+        RUNNER_IP="${{ env.RUNNER_IP }}"
+        echo "Updating security group to allow access from $RUNNER_IP"
+        
+        # Add a rule to allow inbound traffic from the runner's IP
+        aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 9000 --cidr "${RUNNER_IP}/32"
+
     - name: Wait for 30 seconds
       run: |
         echo "Waiting for 30 seconds..."
